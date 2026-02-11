@@ -26,5 +26,7 @@ app.use("/api/auth", require("./routes/auth"));
 
 
 app.listen(3000, "0.0.0.0", () => {
+  console.log("JWT_SECRET =", process.env.JWT_SECRET);
+
   console.log(`Server running on port ${process.env.PORT}`);
 });

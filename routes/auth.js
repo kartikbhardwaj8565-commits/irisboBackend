@@ -2,6 +2,8 @@ const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const pool = require("../db");
+const authMiddleware = require("../middleware/authMiddleware");
+
 
 const router = express.Router();
 
@@ -59,35 +61,55 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
-    //logout//
-    const authMiddleware = require("../middleware/auth");
 
-        router.post("/logout", authMiddleware, async (req, res) => {
-     try {
-      const token = req.token; // extracted in middleware
+    //  SEND RESPONSE
+    res.status(200).json({
+      message: "Login successful",
+      token
+    });
 
-      const decoded = jwt.decode(token);
+  } catch (err) {
+    res.status(500).json({
+      message: "Login failed",
+      error: err.message
+    });
+  }
+});
 
-        const expiresAt = new Date(decoded.exp * 1000);
+ 
+ 
 
-     await pool.query(
-      "INSERT INTO token_blacklist (token, expires_at) VALUES (?, ?)",
+/* LOGOUT */
+router.post("/logout", authMiddleware, async (req, res) => {
+  try {
+    const token = req.token;     // Already extracted in middleware
+    const decoded = req.user;    // Already verified in middleware
+
+    const expiresAt = new Date(decoded.exp * 1000);
+
+    // Check if already blacklisted
+    const [existing] = await pool.query(
+      "SELECT id FROM blacklisted_tokens WHERE token = ? LIMIT 1",
+      [token]
+    );
+
+    if (existing.length > 0) {
+      return res.status(400).json({ message: "Token already logged out" });
+    }
+
+    // Insert into blacklist
+    await pool.query(
+      "INSERT INTO blacklisted_tokens (token, expires_at) VALUES (?, ?)",
       [token, expiresAt]
     );
 
-    res.json({ message: "Logged out successfully" });
+    res.status(200).json({ message: "Logged out successfully" });
 
   } catch (err) {
+    console.log("LOGOUT ERROR:", err.message);
     res.status(500).json({ message: "Logout failed" });
   }
 });
 
-
-    res.json({ token });
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 module.exports = router;
+  
