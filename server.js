@@ -10,7 +10,7 @@ require("dotenv").config();
 //     const [users] = await pool.query('SELECT * FROM users');
 //     console.log(users);
 
-//   } catch (err) {
+//   } catch (err) {ftcft
 //     console.error(err);
 //   }
 // }

@@ -59,6 +59,29 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+    //logout//
+    const authMiddleware = require("../middleware/auth");
+
+        router.post("/logout", authMiddleware, async (req, res) => {
+     try {
+      const token = req.token; // extracted in middleware
+
+      const decoded = jwt.decode(token);
+
+        const expiresAt = new Date(decoded.exp * 1000);
+
+     await pool.query(
+      "INSERT INTO token_blacklist (token, expires_at) VALUES (?, ?)",
+      [token, expiresAt]
+    );
+
+    res.json({ message: "Logged out successfully" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Logout failed" });
+  }
+});
+
 
     res.json({ token });
 
