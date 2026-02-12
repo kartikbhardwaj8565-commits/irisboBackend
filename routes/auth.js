@@ -8,7 +8,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
 /* REGISTER */
- router.post("/signup", async (req, res) => {
+ /* REGISTER */
+router.post("/signup", async (req, res) => {
   try {
     const { name, email, password, username } = req.body;
 
@@ -23,12 +24,22 @@ const router = express.Router();
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await pool.query(
+    const [result] = await pool.query(
       "INSERT INTO users (name, email, password, username) VALUES (?, ?, ?, ?)",
-      [name, email, hashedPassword,username]
+      [name, email, hashedPassword, username]
     );
 
-    res.status(201).json({ message: "User registered successfully" });
+    // 🔥 Generate token immediately
+    const token = jwt.sign(
+      { id: result.insertId },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token
+    });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
