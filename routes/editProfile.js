@@ -5,6 +5,71 @@ const upload = require("../middleware/upload");
 
 const router = express.Router();
 
+/* UPDATE PROFILE IMAGE */
+router.put(
+  "/profile/profile-image",
+  auth,
+  upload.single("profile_img"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No image uploaded" });
+      }
+
+      const imagePath = `/uploads/${req.file.filename}`;
+
+      await pool.query(
+        "UPDATE users SET profile_img = ? WHERE id = ?",
+        [imagePath, userId]
+      );
+
+      res.status(200).json({
+        message: "Profile image updated",
+        profile_img: imagePath
+      });
+
+    } catch (err) {
+      console.log("PROFILE IMAGE ERROR:", err.message);
+      res.status(500).json({ message: "Failed to update profile image" });
+    }
+  }
+);
+
+/* UPDATE COVER IMAGE */
+router.put(
+  "/profile/cover-image",
+  auth,
+  upload.single("cover_img"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      if (!req.file) {
+        return res.status(400).json({ message: "No image uploaded" });
+      }
+
+      const imagePath = `/uploads/${req.file.filename}`;
+
+      await pool.query(
+        "UPDATE users SET cover_img = ? WHERE id = ?",
+        [imagePath, userId]
+      );
+
+      res.status(200).json({
+        message: "Cover image updated",
+        cover_img: imagePath
+      });
+
+    } catch (err) {
+      console.log("COVER IMAGE ERROR:", err.message);
+      res.status(500).json({ message: "Failed to update cover image" });
+    }
+  }
+);
+
+
 /*
 EDIT PROFILE
 */

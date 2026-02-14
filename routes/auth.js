@@ -6,6 +6,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 
 const router = express.Router();
+console.log("AUTH ROUTES LOADED");
 
 /* REGISTER */
  /* REGISTER */
@@ -29,7 +30,7 @@ router.post("/signup", async (req, res) => {
       [name, email, hashedPassword, username]
     );
 
-    // 🔥 Generate token immediately
+    //  Generate token immediately
     const token = jwt.sign(
       { id: result.insertId },
       process.env.JWT_SECRET,
