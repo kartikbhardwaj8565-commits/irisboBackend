@@ -73,6 +73,43 @@ router.post("/login", async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
+    /* FORGOT PASSWORD */
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const [users] = await pool.query(
+      "SELECT id FROM users WHERE email = ?",
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = users[0];
+
+    // Generate reset token (valid for 15 minutes)
+    const resetToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    res.status(200).json({
+      message: "Reset token generated",
+      resetToken   // In production, send via email
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
     //  SEND RESPONSE
     res.status(200).json({
@@ -87,6 +124,56 @@ router.post("/login", async (req, res) => {
     });
   }
 });
+/* RESET PASSWORD */
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword, confirmPassword } = req.body;
+
+    /*  Validate Fields */
+    if (!token || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        message: "All fields are required"
+      });
+    }
+
+    /* Check Password Match */
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        message: "Passwords do not match"
+      });
+    }
+
+    /*  Verify Token */
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({
+        message: "Invalid or expired token"
+      });
+    }
+
+    /*  Hash Password */
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    /* Update Database */
+    await pool.query(
+      "UPDATE users SET password = ? WHERE id = ?",
+      [hashedPassword, decoded.id]
+    );
+
+    res.status(200).json({
+      message: "Password reset successful"
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: "Reset failed",
+      error: err.message
+    });
+  }
+});
+
 
  
  

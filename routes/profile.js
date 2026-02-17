@@ -70,11 +70,11 @@ router.get("/profile", authMiddleware, async (req, res) => {
 
     //  convert filenames → full urls
     user.profile_img = user.profile_img
-      ? `${baseUrl}/uploads/${user.profile_img}`
+      ? `${baseUrl}${user.profile_img}`
       : null;
 
     user.cover_img = user.cover_img
-      ? `${baseUrl}/uploads/${user.cover_img}`
+      ? `${baseUrl}${user.cover_img}`
       : null;
 
     res.status(200).json(user);

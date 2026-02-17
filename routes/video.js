@@ -1,4 +1,4 @@
-/* ADD COMMENT */
+ /* ADD COMMENT */
 router.post("/comment/:id", auth, async (req, res) => {
   try {
     const videoId = req.params.id;

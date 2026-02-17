@@ -25,6 +25,16 @@ app.use("/uploads", express.static("uploads"));
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/profile", require("./routes/editProfile"));
 app.use("/api/profile", require("./routes/profile"));
+app.use("/uploads", express.static("uploads"));
+app.use("/api/posts", require("./routes/post"));
+app.use("/api/reels", require("./routes/reels"));
+app.use("/api/likeReels", require("./routes/LikeReels"));
+
+const activityRoutes = require("./routes/OthersProfile");
+app.use("/api", activityRoutes);
+app.use("/api/saveReels", require("./routes/SaveReels"));
+
+
 
 app.listen(3000, "0.0.0.0", () => {
   console.log("JWT_SECRET =", process.env.JWT_SECRET);
