@@ -13,51 +13,51 @@ const router = express.Router();
 /*
 TOGGLE SAVE / UNSAVE REEL
 */
-router.post("/toggle/:reelId", authMiddleware, async (req, res) => {
+router.post("/toggle/:postId", authMiddleware, async (req, res) => {
   try {
 
     const userId = req.user.id;
-    const reelId = req.params.reelId;
+    const postId = req.params.postId;
 
-    // Check reel exists
-    const [reel] = await pool.query(
-      "SELECT id FROM reels WHERE id = ?",
-      [reelId]
+    // Check post exists
+    const [post] = await pool.query(
+      "SELECT id FROM posts WHERE id = ?",
+      [postId]
     );
 
-    if (reel.length === 0) {
-      return res.status(404).json({ error: "Reel not found" });
+    if (post.length === 0) {
+      return res.status(404).json({ error: "Post not found" });
     }
 
     // Check already saved or not
     const [existing] = await pool.query(
-      "SELECT * FROM saved_reels WHERE user_id = ? AND reel_id = ?",
-      [userId, reelId]
+      "SELECT * FROM saved_posts WHERE user_id = ? AND post_id = ?",
+      [userId, postId]
     );
 
     // IF SAVED → UNSAVE
     if (existing.length > 0) {
 
       await pool.query(
-        "DELETE FROM saved_reels WHERE user_id = ? AND reel_id = ?",
-        [userId, reelId]
+        "DELETE FROM saved_posts WHERE user_id = ? AND post_id = ?",
+        [userId, postId]
       );
 
       return res.json({
         saved: false,
-        message: "Reel unsaved successfully"
+        message: "Post unsaved successfully"
       });
     }
 
     // IF NOT SAVED → SAVE
     await pool.query(
-      "INSERT INTO saved_reels (user_id, reel_id) VALUES (?, ?)",
-      [userId, reelId]
+      "INSERT INTO saved_posts (user_id, post_id) VALUES (?, ?)",
+      [userId, postId]
     );
 
     res.json({
       saved: true,
-      message: "Reel saved successfully"
+      message: "Post saved successfully"
     });
 
   } catch (error) {

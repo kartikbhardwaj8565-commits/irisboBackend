@@ -10,6 +10,7 @@ const authMiddleware = (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+    req.token = token;  // Attach token to req for later use (e.g., logout)
 
     next();
   } catch (error) {

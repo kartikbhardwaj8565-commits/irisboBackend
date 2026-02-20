@@ -45,36 +45,41 @@ router.get("/all", authMiddleware, async (req, res) => {
   try {
 
     const userId = req.user.id;
+ const [reels] = await pool.query(`
+  SELECT 
+    r.id,
+    r.user_id,
+    r.video,
+    r.caption,
+    r.likes_count,
+    r.created_at,
+    u.username,
+    u.profile_image,
 
-    const [reels] = await pool.query(`
-      SELECT 
-        r.id,
-        r.user_id,
-        r.video,
-        r.caption,
-        r.likes_count,
-        r.created_at,
-        u.username,
-        u.profile_image,
+    CASE WHEN rl.user_id IS NULL THEN 0 ELSE 1 END AS is_liked,
+    CASE WHEN sr.user_id IS NULL THEN 0 ELSE 1 END AS is_saved
 
-        IF(rl.user_id IS NULL, 0, 1) AS is_liked
+  FROM reels r
+  JOIN users u ON r.user_id = u.id
 
-      FROM reels r
-      JOIN users u ON r.user_id = u.id
-      LEFT JOIN reel_likes rl
-        ON rl.reel_id = r.id AND rl.user_id = ?
+  LEFT JOIN reel_likes rl
+    ON rl.reel_id = r.id AND rl.user_id = ?
 
-      ORDER BY r.created_at DESC
-    `, [userId]);
+  LEFT JOIN saved_reels sr
+    ON sr.reel_id = r.id AND sr.user_id = ?
 
-    const updatedReels = reels.map(reel => ({
-      ...reel,
-      is_liked: !!reel.is_liked,
-      video_url: `${req.protocol}://${req.get("host")}/uploads/${reel.video}`,
-      profile_image_url: reel.profile_image
-        ? `${req.protocol}://${req.get("host")}/uploads/${reel.profile_image}`
-        : null
-    }));
+  ORDER BY r.created_at DESC
+`, [userId, userId]);
+
+     const updatedReels = reels.map(reel => ({
+  ...reel,
+  is_liked: !!reel.is_liked,
+  is_saved: !!reel.is_saved,
+  video_url: `${req.protocol}://${req.get("host")}/uploads/${reel.video}`,
+  profile_image_url: reel.profile_image
+    ? `${req.protocol}://${req.get("host")}/uploads/${reel.profile_image}`
+    : null
+}));
 
     res.status(200).json({
       success: true,

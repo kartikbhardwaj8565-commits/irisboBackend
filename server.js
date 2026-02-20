@@ -1,43 +1,41 @@
-const express = require("express");
-//const mysql = require('mysql2/promise');
+ const express = require("express");
 require("dotenv").config();
-
-
-// async function startServer() {
-//   try {
-//     const pool = mysql.createPool(process.env.MYSQL_DB);
-
-//     const [users] = await pool.query('SELECT * FROM users');
-//     console.log(users);
-
-//   } catch (err) {ftcft
-//     console.error(err);
-//   }
-// }
-
-// startServer();
 
 const app = express();
 app.use(express.json());
 
+// Static folder
 app.use("/uploads", express.static("uploads"));
 
+// AUTH
 app.use("/api/auth", require("./routes/auth"));
+
+// PROFILE
 app.use("/api/profile", require("./routes/editProfile"));
 app.use("/api/profile", require("./routes/profile"));
-app.use("/uploads", express.static("uploads"));
+
+// POSTS
 app.use("/api/posts", require("./routes/post"));
+app.use("/api/likePosts", require("./routes/LikePosts"));
+app.use("/api/savePosts", require("./routes/SavePosts"));
+
+// REELS
 app.use("/api/reels", require("./routes/reels"));
 app.use("/api/likeReels", require("./routes/LikeReels"));
-
-const activityRoutes = require("./routes/OthersProfile");
-app.use("/api", activityRoutes);
 app.use("/api/saveReels", require("./routes/SaveReels"));
 
+// OTHER USER PROFILE
+const otherProfileRoutes = require("./routes/OthersProfile");
+app.use("/api", otherProfileRoutes);
 
+// USER ACTIVITY (Liked + Saved Posts)
+const userActivityRoutes = require("./routes/userActivity");
+app.use("/api/activity", userActivityRoutes);
 
+//products
+
+// SERVER
 app.listen(3000, "0.0.0.0", () => {
   console.log("JWT_SECRET =", process.env.JWT_SECRET);
-
   console.log(`Server running on port ${process.env.PORT}`);
 });

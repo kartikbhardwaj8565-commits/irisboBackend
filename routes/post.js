@@ -50,25 +50,35 @@ const router = express.Router();
 
 //Fetch posts
 // Fetch all posts
- router.get("/all", async (req, res) => {
+ router.get("/all", auth, async (req, res) => {
   try {
+    const userId = req.user.id;
     const [posts] = await pool.query(`
       SELECT 
-        posts.id,
-        posts.user_id,
-        posts.caption,
-        posts.media,
-        posts.media_type,
-        posts.likes_count,
-        posts.shares_count,
-        posts.tags,
-        posts.created_at,
-        users.username,
-        users.profile_image
-      FROM posts
-      JOIN users ON posts.user_id = users.id
-      ORDER BY posts.created_at DESC
-    `);
+        p.id,
+        p.user_id,
+        p.caption,
+        p.media,
+        p.media_type,
+        p.likes_count,
+        p.shares_count,
+        p.tags,
+        p.created_at,
+        u.username,
+        u.profile_image,
+
+        CASE WHEN pl.user_id IS NULL THEN false ELSE true END AS is_liked,
+        CASE WHEN sp.user_id IS NULL THEN false ELSE true END AS is_saved
+
+      FROM posts p
+      JOIN users u ON p.user_id = u.id
+
+      LEFT JOIN post_likes pl ON pl.post_id = p.id AND pl.user_id = ?
+
+      LEFT JOIN saved_posts sp ON sp.post_id = p.id AND sp.user_id = ?
+
+      ORDER BY p.created_at DESC
+    `, [userId, userId]);
 
     const updatedPosts = posts.map(post => {
       let mediaFiles = [];
@@ -83,11 +93,13 @@ const router = express.Router();
 
       return {
         ...post,
+        is_liked: !!post.is_liked,
+        is_saved: !!post.is_saved,
         media_urls: mediaFiles.map(file =>
           `${req.protocol}://${req.get("host")}/uploads/${file}`
         ),
         profile_image_url: post.profile_image
-          ? `${req.protocol}://${req.get("host")}/uploads/${post.profile_image}`
+          ? `${req.protocol}://${req.get("host" )}/uploads/${post.profile_image}`
           : null,
       };
     });
