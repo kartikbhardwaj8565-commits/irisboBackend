@@ -5,7 +5,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
 /*
-==========================
+========================== 
 ADD TO WISHLIST
 ==========================
 */
@@ -55,15 +55,16 @@ router.post("/add", authMiddleware, async (req, res) => {
 GET MY WISHLIST
 ==========================
 */
-router.get("/my-wishlist", authMiddleware, async (req, res) => {
+router.get("/all", authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
 
     const [items] = await pool.query(`
       SELECT 
         p.id,
+        p.username,
         p.name,
-        CONCAT('${req.protocol}://${req.get("host")}/uploads/', p.product_image) AS product_image,
+         p.product_image,
         p.price
       FROM wishlist w
       JOIN products p ON w.product_id = p.id

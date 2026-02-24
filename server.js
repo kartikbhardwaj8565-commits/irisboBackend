@@ -25,7 +25,7 @@ app.use("/api/likeReels", require("./routes/LikeReels"));
 app.use("/api/saveReels", require("./routes/SaveReels"));
 
 //products
-app.use("/api/products", require("./routes/products"));                   
+app.use("/api/products", require("./routes/Products"));                   
 
 // OTHER USER PROFILE
 const otherProfileRoutes = require("./routes/OthersProfile");
