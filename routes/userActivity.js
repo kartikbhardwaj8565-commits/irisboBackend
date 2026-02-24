@@ -17,7 +17,6 @@ router.get("/liked-posts", authMiddleware, async (req, res) => {
         p.id,
         p.user_id,
         p.media,
-
         p.caption,
         p.created_at,
         u.username,

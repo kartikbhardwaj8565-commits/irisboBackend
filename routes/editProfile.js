@@ -77,13 +77,13 @@ router.put(
   "/edit",
   auth,
   upload.fields([
-    { name: "profile_image", maxCount: 1 },
-    { name: "cover_image", maxCount: 1 },
+    { name: "profile_img", maxCount: 1 },
+    { name: "cover_img", maxCount: 1 },
   ]),
   async (req, res) => {
     try {
       const userId = req.user.id;
-      const { name, username } = req.body;
+      const { name, username , bio, work, education, phone} = req.body;
 
       let profileImage = null;
       let coverImage = null;
@@ -92,7 +92,7 @@ router.put(
         profileImage = req.files.profile_image[0].filename;
       }
 
-      if (req.files?.cover_image) {
+      if (req.files?.cover_image) { 
         coverImage = req.files.cover_image[0].filename;
       }
 
@@ -110,13 +110,21 @@ router.put(
         UPDATE users SET
           name = ?,
           username = ?,
-          profile_image = COALESCE(?, profile_image),
-          cover_image = COALESCE(?, cover_image)
+          bio = ?,
+          work = ?, 
+          education = ?, 
+          phone = ?,
+          profile_img = COALESCE(?, profile_img),
+          cover_img = COALESCE(?, cover_img)
         WHERE id = ?
         `,
         [
           name || user[0].name,
-          username || user[0].username,
+          username || user[0].username,  
+          bio || user[0].bio,
+          work || user[0].work,
+          education || user[0].education,
+          phone || user[0].phone,   
           profileImage,
           coverImage,
           userId,

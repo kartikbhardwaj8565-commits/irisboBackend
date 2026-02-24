@@ -9,16 +9,19 @@ const router = express.Router();
 // ==========================
 // ADD PRODUCT
 // ==========================
-router.post("/add", authMiddleware, upload.single("product_image"), async (req, res) => {
+ router.post("/add", authMiddleware, upload.single("product_image"), async (req, res) => {
   try {
     const userId = req.user.id;
-    const { name, category, price, stock } = req.body;
+    const { name, category, price, stock, description } = req.body;
+
+    console.log("REQ.BODY:", req.body);
+    console.log("REQ.FILE:", req.file);
 
     const image = req.file ? req.file.filename : null;
 
     const [result] = await pool.query(
-      "INSERT INTO products (user_id, name, category, product_image, price, stock) VALUES (?, ?, ?, ?, ?, ?)",
-      [userId, name, category, image, price, stock]
+      "INSERT INTO products (user_id, name, category, product_image, price, stock, description) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [userId, name, category, image, price, stock, description  ]
     );
 
     res.json({
@@ -31,11 +34,10 @@ router.post("/add", authMiddleware, upload.single("product_image"), async (req, 
   }
 });
 
-
 // ==========================
 // GET ALL PRODUCTS
 // ==========================
-router.get("/all", async (req, res) => {
+ router.get("/all", async (req, res) => {
   try {
 
     const [products] = await pool.query(`
@@ -53,55 +55,15 @@ router.get("/all", async (req, res) => {
       ORDER BY p.created_at DESC
     `);
 
-    res.json(products);
+    // Convert filename to full URL
+    const updatedProducts = products.map(product => ({
+      ...product,
+      product_image: product.product_image
+        ? `${product.product_image}`
+        : null
+    }));
 
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-// ==========================
-// ADD TO CART
-// ==========================
-router.post("/cart/:productId", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const productId = req.params.productId;
-
-    await pool.query(
-      "INSERT IGNORE INTO cart (user_id, product_id) VALUES (?, ?)",
-      [userId, productId]
-    );
-
-    res.json({ message: "Product added to cart" });
-
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-
-// ==========================
-// GET MY CART
-// ==========================
-router.get("/my-cart", authMiddleware, async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    const [items] = await pool.query(`
-      SELECT 
-        p.id,
-        p.name,
-        p.product_image,
-        p.price,
-        c.quantity
-      FROM cart c
-      JOIN products p ON c.product_id = p.id
-      WHERE c.user_id = ?
-    `, [userId]);
-
-    res.json(items);
+    res.json(updatedProducts);
 
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -110,3 +72,6 @@ router.get("/my-cart", authMiddleware, async (req, res) => {
 
 
 module.exports = router;
+
+
+ 

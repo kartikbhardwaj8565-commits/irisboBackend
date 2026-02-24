@@ -24,6 +24,9 @@ app.use("/api/reels", require("./routes/reels"));
 app.use("/api/likeReels", require("./routes/LikeReels"));
 app.use("/api/saveReels", require("./routes/SaveReels"));
 
+//products
+app.use("/api/products", require("./routes/products"));                   
+
 // OTHER USER PROFILE
 const otherProfileRoutes = require("./routes/OthersProfile");
 app.use("/api", otherProfileRoutes);
@@ -32,7 +35,12 @@ app.use("/api", otherProfileRoutes);
 const userActivityRoutes = require("./routes/userActivity");
 app.use("/api/activity", userActivityRoutes);
 
-//products
+//cart routes
+const cartRoutes = require("./routes/cartRoutes");
+app.use("/api/cart", cartRoutes);
+//wishlist routes
+const wishlistRoutes = require("./routes/Wishlist");
+app.use("/api/wishlist", wishlistRoutes);
 
 // SERVER
 app.listen(3000, "0.0.0.0", () => {
